@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { BASE_URL } from "../config";
 import "./LoginPage.css";
 
 export default function LoginPage() {
@@ -12,19 +11,18 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      const res = await fetch(`${BASE_URL}/auth/login`, {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
-
       if (res.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userEmail", data.user.email);
-        navigate("/koalaroute"); // redirect to dashboard
+        navigate("/koalaroute");
       } else {
         alert(data.msg || "Login failed");
       }
@@ -34,37 +32,36 @@ export default function LoginPage() {
     }
   };
 
-  // Redirect already logged-in users to dashboard
   useEffect(() => {
     if (localStorage.getItem("isLoggedIn") === "true") {
-      navigate("/koalaroute");
+      navigate("/"); // redirect if already logged in
     }
   }, [navigate]);
 
   return (
     <div className="login-container">
       <div className="login-box">
-        <h2 className="login-title">Login</h2>
-        <form onSubmit={handleLogin} className="login-form">
+        <h2>Login</h2>
+        <form onSubmit={handleLogin} className="login-form" autoComplete="on">
           <input
             type="email"
+            name="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="username" // <-- browser uses saved email
             required
-            className="login-input"
           />
           <input
             type="password"
+            name="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password" // <-- browser uses saved password
             required
-            className="login-input"
           />
-          <button type="submit" className="login-button">
-            Login
-          </button>
+          <button type="submit">Login</button>
         </form>
       </div>
     </div>

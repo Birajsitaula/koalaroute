@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./SignupPage.css";
-import { useEffect } from "react";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -30,29 +29,28 @@ export default function SignupPage() {
       alert("Failed to connect to backend.");
     }
   };
-  useEffect(() => {
-    if (localStorage.getItem("isLoggedIn") === "true") {
-      navigate("/");
-    }
-  }, [navigate]);
 
   return (
     <div className="signup-container">
       <div className="signup-box">
         <h2>Sign Up</h2>
-        <form onSubmit={handleSignup} className="signup-form">
+        <form onSubmit={handleSignup} className="signup-form" autoComplete="on">
           <input
             type="email"
+            name="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="username"
             required
           />
           <input
             type="password"
+            name="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password" // <-- browser knows this is new password
             required
           />
           <button type="submit">Sign Up</button>
