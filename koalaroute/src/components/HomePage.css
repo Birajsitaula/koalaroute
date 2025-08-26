@@ -1,0 +1,29 @@
+.homepage-container {
+  min-height: 100vh;
+  background-color: #f7f7f7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48px 16px;
+}
+
+.homepage-box {
+  background: white;
+  max-width: 768px;
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+  text-align: center;
+}
+
+.homepage-box h1 {
+  font-size: 2rem;
+  color: #2563eb;
+  margin-bottom: 16px;
+}
+
+.homepage-box p {
+  color: #4b5563;
+  font-size: 1rem;
+}

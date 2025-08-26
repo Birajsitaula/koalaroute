@@ -1,0 +1,45 @@
+.flight-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.flight-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.flight-form input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  flex: 1;
+}
+
+.flight-form button {
+  padding: 10px 20px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.flight-form button:hover {
+  background-color: #1e40af;
+}
+
+.flight-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flight-card {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #f9fafb;
+}

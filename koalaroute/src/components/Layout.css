@@ -1,0 +1,43 @@
+.layout-container {
+  background-color: #f7f7f7;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background: #2563eb;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+}
+
+.nav a {
+  color: white;
+  margin: 0 10px;
+  text-decoration: none;
+}
+
+.user-email {
+  background: white;
+  color: #2563eb;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.logout-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.main-content {
+  flex: 1;
+  padding: 1rem;
+}
