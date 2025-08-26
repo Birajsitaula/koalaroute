@@ -10,7 +10,7 @@ export default function TabNavigation({ activeTab, setActiveTab }) {
   ];
 
   return (
-    <div className="tab-container">
+    <div className="tab-navigation">
       {tabs.map((tab) => (
         <button
           key={tab.key}
