@@ -6,6 +6,7 @@ import "./Layout.css";
 export default function Layout() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,30 +30,65 @@ export default function Layout() {
     localStorage.removeItem("userEmail");
     setIsLoggedIn(false);
     setUserEmail(null);
+    setIsMobileMenuOpen(false);
     navigate("/login");
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   return (
     <div className="layout-container">
       <header className="header">
-        <h1>KoalaRoute AI</h1>
-        <nav className="nav">
-          <Link to="/">Home</Link>
-          <Link to="/contact">Contact</Link>
-          {!isLoggedIn ? (
-            <>
-              <Link to="/login">Login</Link>
-              <Link to="/signup">Sign Up</Link>
-            </>
-          ) : (
-            <>
-              {userEmail && <span className="user-email">{userEmail}</span>}
-              <button onClick={handleLogout} className="logout-btn">
-                Logout
-              </button>
-            </>
-          )}
-        </nav>
+        <div className="header-container">
+          <div className="logo-container">
+            <div className="logo-icon">
+              <span>🐨</span>
+            </div>
+            <h1>KoalaRoute AI</h1>
+          </div>
+
+          <nav className={`nav ${isMobileMenuOpen ? "nav-open" : ""}`}>
+            <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>
+              Home
+            </Link>
+            <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)}>
+              Contact
+            </Link>
+            {!isLoggedIn ? (
+              <>
+                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="signup-btn"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </>
+            ) : (
+              <>
+                {userEmail && <span className="user-email">{userEmail}</span>}
+                <button onClick={handleLogout} className="logout-btn">
+                  Logout
+                </button>
+              </>
+            )}
+          </nav>
+
+          <button
+            className={`mobile-menu-toggle ${isMobileMenuOpen ? "open" : ""}`}
+            onClick={toggleMobileMenu}
+            aria-label="Toggle navigation menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
       </header>
 
       <main className="main-content">

@@ -3,23 +3,27 @@ import "./TabNavigation.css";
 
 export default function TabNavigation({ activeTab, setActiveTab }) {
   const tabs = [
-    { key: "chat", label: "Chat" },
-    { key: "flights", label: "Flights" },
-    { key: "hotels", label: "Hotels" },
-    { key: "alerts", label: "Price Alerts" },
+    { key: "chat", label: "AI Assistant", icon: "💬" },
+    { key: "flights", label: "Flights", icon: "✈️" },
+    { key: "hotels", label: "Hotels", icon: "🏨" },
+    { key: "alerts", label: "Price Alerts", icon: "🔔" },
   ];
 
   return (
     <div className="tab-navigation">
-      {tabs.map((tab) => (
-        <button
-          key={tab.key}
-          className={`tab-button ${activeTab === tab.key ? "active" : ""}`}
-          onClick={() => setActiveTab(tab.key)}
-        >
-          {tab.label}
-        </button>
-      ))}
+      <div className="tab-scroll-container">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            className={`tab-button ${activeTab === tab.key ? "active" : ""}`}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            <span className="tab-icon">{tab.icon}</span>
+            <span className="tab-label">{tab.label}</span>
+            <span className="active-indicator"></span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
