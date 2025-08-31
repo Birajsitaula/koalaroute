@@ -5,18 +5,17 @@ import OpenAI from "openai";
 import { authMiddleware } from "../middleware/auth.js";
 import Chat from "../models/Chat.js";
 
-// Cache MongoDB connection across serverless invocations
+// Cache MongoDB connection
 let cached = global.mongoose;
 if (!cached) cached = global.mongoose = { conn: null, promise: null };
 
 async function connectMongo() {
   if (cached.conn) return cached.conn;
   if (!process.env.MONGO_URI) throw new Error("MONGO_URI is not defined!");
-  if (!cached.promise) {
+  if (!cached.promise)
     cached.promise = mongoose
       .connect(process.env.MONGO_URI)
       .then((mongoose) => mongoose);
-  }
   cached.conn = await cached.promise;
   return cached.conn;
 }
@@ -26,7 +25,7 @@ if (!process.env.OPENAI_API_KEY)
   throw new Error("OPENAI_API_KEY is not defined!");
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Helper to run Express middleware in serverless
+// Helper to run Express middleware
 function runMiddleware(req, res, fn) {
   return new Promise((resolve, reject) => {
     fn(req, res, (result) => {
@@ -38,14 +37,8 @@ function runMiddleware(req, res, fn) {
 
 export default async function handler(req, res) {
   try {
-    console.log("Starting /api/koalaChat function");
-
     await connectMongo();
-    console.log("MongoDB connected");
-
-    // Run authentication
     await runMiddleware(req, res, authMiddleware);
-    console.log("Auth passed, user:", req.user);
 
     if (req.method !== "POST") {
       res.setHeader("Allow", ["POST"]);
@@ -53,23 +46,19 @@ export default async function handler(req, res) {
     }
 
     const { user_query, history } = req.body;
-
-    if (!user_query) {
+    if (!user_query)
       return res.status(400).json({ ai_response: "No query provided." });
-    }
 
     const messages = (history || []).map((msg) => ({
       role: msg.role === "ai" ? "assistant" : "user",
       content: msg.content,
     }));
 
-    // Add system prompt
     messages.unshift({
       role: "system",
       content: "You are KoalaRoute AI, a helpful travel assistant.",
     });
 
-    // Call OpenAI
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
@@ -79,7 +68,7 @@ export default async function handler(req, res) {
     const aiMessage =
       response.choices?.[0]?.message?.content || "No response from AI";
 
-    // Save conversation to Chat model
+    // Save conversation
     const chatMessages = [
       ...(history || []),
       { role: "user", content: user_query },
