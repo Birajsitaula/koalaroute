@@ -15,28 +15,34 @@ const app = express();
 app.use(cors({ origin: "*", credentials: true }));
 app.use(express.json());
 
-// Routes
+// API Routes
 app.use("/api/chat", chatRouter);
 app.use("/api/auth", authRoutes);
 app.use("/api/koalaroute", koalaRoute);
 app.use("/api/contact", contactRoutes);
 
-// Root route
-app.get("/", (req, res) => {
+// Root API message (optional)
+app.get("/api", (req, res) => {
   res.send("🚀 KoalaRoute API is running!");
 });
 
-// MongoDB Connection
+// MongoDB connection (serverless friendly)
 const mongoUri = process.env.MONGO_URI;
-if (!mongoUri) {
-  console.error("❌ MONGO_URI is not defined. Did you set it in Railway?");
-  process.exit(1);
+let isConnected = false;
+
+async function connectMongo() {
+  if (isConnected) return;
+  try {
+    await mongoose.connect(mongoUri);
+    console.log("✅ MongoDB connected");
+    isConnected = true;
+  } catch (err) {
+    console.error("❌ MongoDB connection error:", err);
+  }
 }
 
-mongoose
-  .connect(mongoUri)
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
-
-// Export Express app for Vercel (no app.listen here)
-export default app;
+// Export serverless handler
+export default async function handler(req, res) {
+  await connectMongo();
+  app(req, res);
+}
