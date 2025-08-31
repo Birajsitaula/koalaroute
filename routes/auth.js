@@ -57,7 +57,7 @@ import "dotenv/config";
 const router = express.Router();
 
 // Signup
-router.post("/", async (req, res) => {
+router.post("/signup", async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -76,7 +76,7 @@ router.post("/", async (req, res) => {
 });
 
 // Login
-router.post("/", async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
