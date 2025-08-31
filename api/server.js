@@ -2,9 +2,9 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import mongoose from "mongoose";
-
 import cors from "cors";
-import authRoutes from "../routes/auth";
+
+import authRoutes from "../routes/auth.js";
 import koalaRoute from "../routes/koalaroute.js";
 import contactRoutes from "../routes/contact.js";
 import chatRouter from "../app/api/chat/route.js";
@@ -21,28 +21,27 @@ app.use("/api/auth", authRoutes);
 app.use("/api/koalaroute", koalaRoute);
 app.use("/api/contact", contactRoutes);
 
-// MongoDB connection
-const mongoUri = process.env.MONGO_URI;
-if (!mongoUri) {
-  console.error("❌ MONGO_URI is not defined. Did you set it in Railway?");
-  process.exit(1);
-}
+// MongoDB connection caching for serverless
+let cached = global.mongoose;
+if (!cached) cached = global.mongoose = { conn: null, promise: null };
 
-// Connect MongoDB (on first request)
-let isConnected = false;
 async function connectMongo() {
-  if (isConnected) return;
-  try {
-    await mongoose.connect(mongoUri);
-    console.log("✅ MongoDB connected");
-    isConnected = true;
-  } catch (err) {
-    console.error("❌ MongoDB connection error:", err);
-  }
+  if (cached.conn) return cached.conn;
+  if (!process.env.MONGO_URI) throw new Error("MONGO_URI is not defined!");
+  if (!cached.promise)
+    cached.promise = mongoose.connect(process.env.MONGO_URI).then((m) => m);
+  cached.conn = await cached.promise;
+  console.log("✅ MongoDB connected");
+  return cached.conn;
 }
 
-// Export the app as a serverless function
+// Export as serverless handler
 export default async function handler(req, res) {
-  await connectMongo();
-  app(req, res);
+  try {
+    await connectMongo();
+    app(req, res); // pass request to Express app
+  } catch (err) {
+    console.error("Serverless function error:", err);
+    res.status(500).json({ error: err.message || "Internal Server Error" });
+  }
 }

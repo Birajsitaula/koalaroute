@@ -1,57 +1,42 @@
-import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 import dotenv from "dotenv";
 dotenv.config();
-import User from "../models/User";
 
-const mongoUri = process.env.MONGO_URI;
-if (!mongoUri) {
-  throw new Error("❌ MONGO_URI is not defined!");
-}
-
-// Cache MongoDB connection across serverless invocations
-let cached = global.mongoose;
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
-
-async function connectMongo() {
-  if (cached.conn) return cached.conn;
-
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(mongoUri).then((mongoose) => mongoose);
-  }
-
-  cached.conn = await cached.promise;
-  return cached.conn;
-}
-
-// Serverless handler
 export default async function handler(req, res) {
   try {
     await connectMongo();
 
     if (req.method !== "POST") {
+      res.setHeader("Allow", ["POST"]);
       return res.status(405).json({ error: "Method not allowed" });
     }
 
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
+      return res.status(400).json({ error: "Email and password required" });
     }
 
-    // Create new user
-    const user = new User({ email, password });
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = new User({ email, password: hashedPassword });
     await user.save();
 
-    res
-      .status(201)
-      .json({ message: "User created successfully", userId: user._id });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    return res.status(201).json({ message: "User registered", token });
   } catch (err) {
-    console.error("Error in /register:", err);
-    if (err.code === 11000) {
-      // Duplicate key error (unique email)
-      return res.status(409).json({ error: "Email already exists" });
-    }
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error in /api/register:", err);
+    return res
+      .status(500)
+      .json({ error: err.message || "Internal Server Error" });
   }
 }
