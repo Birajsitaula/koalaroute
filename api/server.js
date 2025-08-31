@@ -21,12 +21,12 @@ app.use("/api/auth", authRoutes);
 app.use("/api/koalaroute", koalaRoute);
 app.use("/api/contact", contactRoutes);
 
-// Root route (optional but recommended)
+// Root route
 app.get("/", (req, res) => {
   res.send("🚀 KoalaRoute API is running!");
 });
 
-// MongoDB connection
+// MongoDB Connection
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
   console.error("❌ MONGO_URI is not defined. Did you set it in Railway?");
@@ -38,5 +38,5 @@ mongoose
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// Export Express app for Vercel (NO app.listen)
+// Export Express app for Vercel (no app.listen here)
 export default app;

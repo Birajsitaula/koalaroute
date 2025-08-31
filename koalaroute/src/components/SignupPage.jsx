@@ -1,8 +1,7 @@
-
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./SignupPage.css";
+import { BASE_URL } from "../config"; // adjust path if needed
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -25,7 +24,7 @@ export default function SignupPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/signup", {
+      const res = await fetch(`${BASE_URL}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
