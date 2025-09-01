@@ -1,8 +1,12 @@
 [build]
-  command = "cd client && pnpm install && pnpm run build"
+  # Build frontend
+  command = "cd client && npm install && npm run build"
   publish = "client/dist"
 
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
-  status = 200
+  # Directory where Netlify functions are located
+  functions = "netlify/functions"
+
+# Optional: set Node version for Vite & backend
+[build.environment]
+  NODE_VERSION = "20"
+
