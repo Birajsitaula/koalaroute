@@ -1,12 +1,19 @@
 [build]
   # Build frontend
-  command = "cd client && npm install && npm run build"
-  publish = "client/dist"
+  command = "cd koalaroute && npm install && npm run build"
+  publish = "koalaroute/dist"
 
-  # Directory where Netlify functions are located
+  # Functions folder
   functions = "netlify/functions"
 
-# Optional: set Node version for Vite & backend
 [build.environment]
   NODE_VERSION = "20"
 
+  # Environment variables (also set in Netlify dashboard)
+  ADMIN_EMAIL = "your_admin_email@example.com"
+  ADMIN_PASSWORD = "your_app_password"
+  AVIASALES_API_KEY = "your_api_key"
+  AVIASALES_MARKER = "your_marker"
+  JWT_SECRET = "your_jwt_secret"
+  MONGO_URI = "your_mongo_uri"
+  OPENAI_API_KEY = "your_openai_key"
