@@ -1,4 +1,5 @@
 .env
 .node_modules
-vercel..json
+vercel.json
 .vercel
+.netlify.toml

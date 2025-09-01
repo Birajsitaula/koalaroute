@@ -1,53 +1,53 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import serverless from "serverless-http";
 import mongoose from "mongoose";
 import cors from "cors";
-import dotenv from "dotenv";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
 
-import User from "../../models/User.js"; // Adjust if model is in a different path
-import koalaRoute from "../../routes/koalaroute.js";
-import contactRoutes from "../../routes/contact.js";
-import chatRouter from "../../app/api/chat/route.js";
+// Routes & Middleware
+import { authMiddleware } from "../../middleware/auth.js";
+import User from "../../models/User.js"; // make sure this path is correct
+import nodemailer from "nodemailer";
+import fetch from "node-fetch";
+import crypto from "crypto";
+import OpenAI from "openai";
 
-dotenv.config();
+// Initialize Express app
 const app = express();
 
+// Middleware
 app.use(cors({ origin: "*", credentials: true }));
 app.use(express.json());
 
-// ===== MongoDB Connection (Prevent multiple connections) =====
-const mongoUri = process.env.MONGO_URI;
-if (!mongoose.connection.readyState) {
-  mongoose
-    .connect(mongoUri)
-    .then(() => console.log("✅ MongoDB connected"))
-    .catch((err) => console.error("❌ MongoDB connection error:", err));
-}
+// ----------------------
+// MongoDB Connection
+// ----------------------
+let isConnected = false;
 
-// ===== Auth Middleware =====
-const authMiddleware = (req, res, next) => {
-  const token = req.header("Authorization")?.replace("Bearer ", "");
-  if (!token)
-    return res.status(401).json({ msg: "No token, authorization denied" });
+const connectDB = async () => {
+  if (isConnected) return;
+  const mongoUri = process.env.MONGO_URI;
+  if (!mongoUri) throw new Error("MONGO_URI not defined");
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    res.status(401).json({ msg: "Token is not valid" });
-  }
+  await mongoose.connect(mongoUri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  isConnected = true;
+  console.log("✅ MongoDB connected");
 };
 
-// ===== Auth Routes =====
-const authRouter = express.Router();
-
-// Signup
-authRouter.post("/signup", async (req, res) => {
+// ----------------------
+// Auth Routes
+// ----------------------
+app.post("/api/auth/signup", async (req, res) => {
   try {
+    await connectDB();
     const { email, password } = req.body;
+
     const existingUser = await User.findOne({ email });
     if (existingUser)
       return res.status(400).json({ msg: "User already exists" });
@@ -62,10 +62,11 @@ authRouter.post("/signup", async (req, res) => {
   }
 });
 
-// Login
-authRouter.post("/login", async (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   try {
+    await connectDB();
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ msg: "User not found" });
 
@@ -75,22 +76,155 @@ authRouter.post("/login", async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
+
     res.json({ token, user: { id: user._id, email: user.email } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Protected Route Example
-authRouter.get("/me", authMiddleware, (req, res) => {
-  res.json({ msg: `Welcome, user ID: ${req.user.id}` });
+// ----------------------
+// Contact Route
+// ----------------------
+app.post("/api/contact", async (req, res) => {
+  const { name, email, message } = req.body;
+
+  if (!name || !email || !message)
+    return res.status(400).json({ error: "All fields are required" });
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.ADMIN_EMAIL,
+        pass: process.env.ADMIN_PASSWORD,
+      },
+    });
+
+    await transporter.sendMail({
+      from: email,
+      to: process.env.ADMIN_EMAIL,
+      subject: `New message from ${name}`,
+      text: message,
+    });
+
+    res.json({ msg: "Message sent successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to send message" });
+  }
 });
 
-// ===== Register Routes =====
-app.use("/api/auth", authRouter);
-app.use("/api/chat", chatRouter);
-app.use("/api/koalaroute", koalaRoute);
-app.use("/api/contact", contactRoutes);
+// ----------------------
+// KoalaRoute Flight Routes
+// ----------------------
+const SEARCH_API = "https://api.travelpayouts.com/v1/flight_search";
+const RESULTS_API = "https://api.travelpayouts.com/v1/flight_search_results";
+const TOKEN = process.env.AVIASALES_API_KEY;
+const MARKER = process.env.AVIASALES_MARKER;
 
-// ===== Export Serverless Handler =====
+function generateSignature(params, token) {
+  const values = Object.values(params)
+    .flatMap((v) =>
+      typeof v === "object" && v !== null ? Object.values(v) : v
+    )
+    .sort();
+  const valuesString = values.join(":");
+  return crypto
+    .createHash("md5")
+    .update(`${token}:${valuesString}`)
+    .digest("hex");
+}
+
+async function safeJsonParse(response) {
+  const text = await response.text();
+  if (text.includes("Unauthorized")) throw new Error("Unauthorized");
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("Invalid JSON from API");
+  }
+}
+
+// Example flight search endpoint
+app.post("/api/koalaroute/flights", authMiddleware, async (req, res) => {
+  try {
+    const {
+      origin,
+      destination,
+      departure_at,
+      return_at,
+      currency = "usd",
+      passengers = 1,
+    } = req.body;
+    const segments = [{ origin, destination, date: departure_at }];
+    if (return_at)
+      segments.push({
+        origin: destination,
+        destination: origin,
+        date: return_at,
+      });
+
+    const requestParams = {
+      marker: MARKER,
+      host: req.headers.host,
+      user_ip: req.ip,
+      locale: "en",
+      passengers: { adults: passengers, children: 0, infants: 0 },
+      segments,
+    };
+    requestParams.signature = generateSignature(requestParams, TOKEN);
+
+    const searchResponse = await fetch(SEARCH_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Access-Token": TOKEN },
+      body: JSON.stringify(requestParams),
+    });
+    const searchData = await safeJsonParse(searchResponse);
+    res.json(searchData);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Flight search failed: " + err.message });
+  }
+});
+
+// ----------------------
+// OpenAI Chat Route
+// ----------------------
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { user_query, history } = req.body;
+    if (!user_query)
+      return res.status(400).json({ ai_response: "No query provided." });
+
+    const messages = [
+      {
+        role: "system",
+        content: "You are KoalaRoute AI, a helpful travel assistant.",
+      },
+      ...history.map((msg) => ({
+        role: msg.role === "ai" ? "assistant" : "user",
+        content: msg.content,
+      })),
+    ];
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages,
+      max_tokens: 500,
+    });
+    const aiMessage =
+      response.choices[0].message.content || "No response from AI";
+    res.json({ ai_response: aiMessage });
+  } catch (error) {
+    console.error("OpenAI API error:", error);
+    res.status(500).json({ ai_response: "Error connecting to OpenAI API." });
+  }
+});
+
+// ----------------------
+// Export as serverless function
+// ----------------------
 export const handler = serverless(app);
