@@ -1,15 +1,8 @@
-# netlify.toml
 [build]
-  # Install frontend dependencies and build frontend
-  command = "npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix netlify/functions"
-  
-  # Folder where frontend build output is located
-  publish = "frontend/dist"
-
-  # Folder where Netlify functions are located
+  command = "npm install --prefix koalaroute && npm run build --prefix koalaroute && pnpm install --prefix netlify/functions"
+  publish = "koalaroute/dist"
   functions = "netlify/functions"
 
-# Redirect all /api/* requests to the corresponding serverless function
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
