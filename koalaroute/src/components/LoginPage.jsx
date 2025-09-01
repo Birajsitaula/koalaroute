@@ -16,13 +16,22 @@ export default function LoginPage() {
     setError("");
 
     try {
+      // Log the URL for debugging
+      console.log("Attempting to login to:", `${BASE_URL}/auth/login`);
+
       const res = await fetch(`${BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
+      // Check if we got any response at all
+      if (!res) {
+        throw new Error("No response from server");
+      }
+
       const data = await res.json();
+
       if (res.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("isLoggedIn", "true");
@@ -41,7 +50,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (localStorage.getItem("isLoggedIn") === "true") {
-      navigate("/"); // redirect if already logged in
+      navigate("/");
     }
   }, [navigate]);
 
