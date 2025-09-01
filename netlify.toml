@@ -1,29 +1,16 @@
-# -------------------------------
-# Netlify Build & Functions Config
-# -------------------------------
-
+# netlify.toml
 [build]
-  # Build frontend first with npm, then backend functions with pnpm
-  command = "npm install --prefix frontend && npm run build --prefix frontend && pnpm install --prefix netlify/functions"
+  # Install frontend dependencies and build frontend
+  command = "npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix netlify/functions"
   
-  # Directory where the built frontend assets are located
+  # Folder where frontend build output is located
   publish = "frontend/dist"
 
-  # Directory for Netlify Functions
+  # Folder where Netlify functions are located
   functions = "netlify/functions"
 
-# -------------------------------
-# Development Settings (Netlify Dev)
-# -------------------------------
-[dev]
-  functions = "netlify/functions"
-  port = 3000
-  publish = "frontend/dist"
-
-# -------------------------------
-# Redirects / Rewrites
-# -------------------------------
+# Redirect all /api/* requests to the corresponding serverless function
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  to = "/.netlify/functions/:splat"
   status = 200
