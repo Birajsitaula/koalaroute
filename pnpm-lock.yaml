@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@vendia/serverless-express':
+        specifier: ^4.12.6
+        version: 4.12.6
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.2
@@ -44,8 +47,15 @@ importers:
       serverless:
         specifier: ^4.18.2
         version: 4.18.2
+      serverless-http:
+        specifier: ^4.0.0
+        version: 4.0.0
 
 packages:
+
+  '@codegenie/serverless-express@4.17.0':
+    resolution: {integrity: sha512-KebLJ34yHNWFoC9D+iF1Ft+6T8hj0mdylP9d2SFERNuVPOc6UqAvgxm9mY6r2V3wCJ+BPpG2vEHihpUtCT3dEg==}
+    engines: {node: '>=18'}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -63,6 +73,10 @@ packages:
 
   '@types/whatwg-url@11.0.5':
     resolution: {integrity: sha512-coYR071JRaHa+xoEvvYqvnIHaVqaYrLPbsufM9BF63HkwI5Lgmy2QR8Q5K/lYDYo5AK82wOvSOS0UsLTpTG7uQ==}
+
+  '@vendia/serverless-express@4.12.6':
+    resolution: {integrity: sha512-ePsIPk3VQwgm5nh/JGBtTKQs5ZOF7REjHxC+PKk/CHvhlKQkJuUU365uPOlxuLJhC+BAefDznDRReWxpnKjmYg==}
+    engines: {node: '>=12'}
 
   accepts@2.0.0:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
@@ -651,6 +665,10 @@ packages:
     resolution: {integrity: sha512-61g9pCh0Vnh7IutZjtLGGpTA355+OPn2TyDv/6ivP2h/AdAVX9azsoxmg2/M6nZeQZNYBEwIcsne1mJd9oQItQ==}
     engines: {node: '>= 18'}
 
+  serverless-http@4.0.0:
+    resolution: {integrity: sha512-KKl9h1+VApX9y2vHsVMogf906UXBwO3FDYiWPzqS0mCjEEx4Sx91JrssbWA7RN43HBuxrtoh8MkocZPvjyGnLg==}
+    engines: {node: '>=12.0'}
+
   serverless@4.18.2:
     resolution: {integrity: sha512-mixSLpv07I2bpLQwa8kf1JhLom90iYsjKas6tcK7YDZSrmEPbDshLycUCYP3wN/nUHuQI67ITyjK5Dul7YU2ZA==}
     engines: {node: '>=18.0.0'}
@@ -798,6 +816,8 @@ packages:
 
 snapshots:
 
+  '@codegenie/serverless-express@4.17.0': {}
+
   '@isaacs/cliui@8.0.2':
     dependencies:
       string-width: 5.1.2
@@ -819,6 +839,10 @@ snapshots:
   '@types/whatwg-url@11.0.5':
     dependencies:
       '@types/webidl-conversions': 7.0.3
+
+  '@vendia/serverless-express@4.12.6':
+    dependencies:
+      '@codegenie/serverless-express': 4.17.0
 
   accepts@2.0.0:
     dependencies:
@@ -1410,6 +1434,8 @@ snapshots:
       send: 1.2.0
     transitivePeerDependencies:
       - supports-color
+
+  serverless-http@4.0.0: {}
 
   serverless@4.18.2:
     dependencies:

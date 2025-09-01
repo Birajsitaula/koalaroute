@@ -1,19 +1,29 @@
-[build]
-  # Build frontend
-  command = "cd koalaroute && npm install && npm run build"
-  publish = "koalaroute/dist"
+# -------------------------------
+# Netlify Build & Functions Config
+# -------------------------------
 
-  # Functions folder
+[build]
+  # Build frontend first with npm, then backend functions with pnpm
+  command = "npm install --prefix frontend && npm run build --prefix frontend && pnpm install --prefix netlify/functions"
+  
+  # Directory where the built frontend assets are located
+  publish = "frontend/dist"
+
+  # Directory for Netlify Functions
   functions = "netlify/functions"
 
-[build.environment]
-  NODE_VERSION = "20"
+# -------------------------------
+# Development Settings (Netlify Dev)
+# -------------------------------
+[dev]
+  functions = "netlify/functions"
+  port = 3000
+  publish = "frontend/dist"
 
-  # Environment variables (also set in Netlify dashboard)
-  ADMIN_EMAIL = "your_admin_email@example.com"
-  ADMIN_PASSWORD = "your_app_password"
-  AVIASALES_API_KEY = "your_api_key"
-  AVIASALES_MARKER = "your_marker"
-  JWT_SECRET = "your_jwt_secret"
-  MONGO_URI = "your_mongo_uri"
-  OPENAI_API_KEY = "your_openai_key"
+# -------------------------------
+# Redirects / Rewrites
+# -------------------------------
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
