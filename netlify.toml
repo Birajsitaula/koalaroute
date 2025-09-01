@@ -1,5 +1,5 @@
 [build]
-  command = "npm install --prefix koalaroute && npm run build --prefix koalaroute && pnpm install --prefix netlify/functions"
+  command = "npm install --prefix koalaroute && npm run build --prefix koalaroute"
   publish = "koalaroute/dist"
   functions = "netlify/functions"
 
